@@ -4,8 +4,9 @@ const port = 5000 //#2 포트 설정
 const bodyParser = require('body-parser') //#7 package.json에 추가된 body-parser를 가져온다 -> (express에서 지원해줘서 필요없음)
 const { User } = require("./models/User") //#7 User 모델을 가져온다
 const mongoose = require('mongoose') //#3 mongoose 가져온다
+const config = require('./config/key') //#9 비밀정보
 
-mongoose.connect('mongodb+srv://yuntaehun:123qwe@boilerplate.cop5u.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {})
+mongoose.connect(config.mongoURI, {})
 .then(() => console.log('MongoDB Connected...'))
 .catch(err => console.log(err))
 
