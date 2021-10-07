@@ -26,6 +26,8 @@ app.post('/register', (req, res) => {
   //express에서 parsing을 해줘서 바로 가져올수있는것임
   const user = new User(req.body)
 
+  //여기서 User.js에서의 bcrypt암호화가 됨
+
   //user모델에 저장해줌 - save는 monogDB의 함수임
   user.save((err, userInfo) => {
     if(err) return res.json({ succcess: false, err}) //실패, error -> json형식으로 전달

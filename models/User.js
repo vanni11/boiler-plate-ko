@@ -1,4 +1,7 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
+const bcrypt = require('bcrypt')
+const saltRounds = 10 //비밀번호 길이
+
 
 const userSchema = mongoose.Schema({
     name: {
@@ -30,6 +33,34 @@ const userSchema = mongoose.Schema({
         type: Number
     },
 })
+
+//#10 .pre('save', ) : save하기 전에 실행하라는 뜻 (mongoose의 메소드)
+userSchema.pre('save', function( next ){
+    var user = this //위의 userSchema를 가리킴
+
+    //비밀번호가 변경됐을때만 암호화 처리 - 안하면 저장할때마다 처리됨
+    if(user.isModified('password')){
+        //비밀번호를 암호화시킨다
+        /* 공홈(https://www.npmjs.com/package/bcrypt) technique 1 참고
+        bcrypt.genSalt(saltRounds, function(err, salt) {
+            bcrypt.hash(myPlaintextPassword, salt, function(err, hash) {
+                // Store hash in your password DB.
+            });
+        });
+        */
+
+        //salt를 이용해서 암호화함 
+        bcrypt.genSalt(saltRounds,function(err, salt){
+            if(err) return next(err)
+            bcrypt.hash(user.password, salt, function(err, hash){
+                if(err) return next(err)
+                user.password = hash //암호화된 비밀번호로 바꿔줌
+                next()
+            })
+        })
+    } 
+})
+
 
 //위의 schema를 model로 감싸줌
 const User = mongoose.model('User', userSchema)
