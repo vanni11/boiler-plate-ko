@@ -58,8 +58,18 @@ userSchema.pre('save', function( next ){
                 next()
             })
         })
-    } 
+    } else {
+        next() //다른게 수정돼도 next로는 가야함
+    }
 })
+
+
+userSchema.methods.comparePassword  = function(plainPassword, cb) {
+    bcrypt.compare(plainPassword, this.password, function(err, isMatch) {
+        if(err) return cb(err) //같지않으면 콜백에 err전달
+        cb(null, isMatch) //같으면 err부분은 null이고 isMatch는 true로 전달
+    })
+}
 
 
 //위의 schema를 model로 감싸줌
