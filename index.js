@@ -3,6 +3,7 @@ const app = express() //#2 express 앱 생성
 const port = 5000 //#2 포트 설정
 const mongoose = require('mongoose') //#3 mongoose 가져온다
 const bodyParser = require('body-parser') //#7 package.json에 추가된 body-parser를 가져온다 -> (express에서 지원해줘서 필요없음)
+const cookieParser = require('cookie-parser') //#12
 const { User } = require("./models/User") //#7 User 모델을 가져온다
 const config = require('./config/key') //#9 비밀정보
 const { reset } = require('nodemon')
@@ -13,9 +14,11 @@ mongoose.connect(config.mongoURI, {})
 
 //#7 강의에선 express부분이 bodyParser였음
 //application/x-www-form-urlencoded 형식을 분석해서 가져올수있게
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({extended: true}));
 //application/json 형식을 분석해서 가져올수있게
-app.use(express.json())
+app.use(express.json());
+
+app.use(cookieParser()); //#12
 
 //#2 루트 디렉토리에 오면 문구 출력되도록 -> get method 사용한 route임
 app.get('/', (req, res) => { res.send('Hello World! Hello World!') })
@@ -46,20 +49,23 @@ app.post('/login', (req, res) => {
         message: "제공된 이메일에 해당하는 유저가 없습니다."
       })
     }
+
+    //2. 비밀번호가 일치하는지 확인 -> User.js에서 생성
+    user.comparePassword(req.body.password, (err, isMatch) => {
+      if(!isMatch)
+        return res.json({loginSuccess: false, message: "비밀번호가 틀렸습니다."})
+
+      //3. token 생성
+      user.generateToken((err, user)=> {
+        if(err) return res.status(400).send(err);
+
+        //토큰 저장
+        res.cookie("x_auth", user.token) //개발자도구 세션에서 x_auth란 이름으로 확인가능함
+        .status(200) //성공
+        .json({loginSuccess: true, userID: user._id});
+      })
+    })
   })
-
-  //2. 비밀번호가 일치하는지 확인 -> User.js에서 생성
-  user.comparePassword(req.body.password, (err, isMatch) => {
-    if(!isMatch)
-      return res.json({loginSuccess: false, message: "비밀번호가 틀렸습니다."})
-
-    //3. token 생성
-    
-  })
-
-
-
-
 })
 
 
